@@ -1,0 +1,90 @@
+[
+  {
+    "sourceFile": "Alpha Sow - Vase aux oiseaux, Céramique, 37x32cm, 2010.tif",
+    "reference": "MW-0001",
+    "title": "Vase aux oiseaux",
+    "author": "Alpha Sow",
+    "technique": "Ceramique",
+    "dimensions": "37x32cm",
+    "year": 2010,
+    "categorySlug": "ceramique",
+    "collectionSlug": "maitres-senegalais"
+  },
+  {
+    "sourceFile": "Amadou Cissé Dia - Sans-titre, Acryl. sr toile, 96x72cm B.tif",
+    "reference": "MW-0002",
+    "title": "Sans-titre",
+    "author": "Amadou Cisse Dia",
+    "technique": "Acrylique sur toile",
+    "dimensions": "96x72cm",
+    "year": null,
+    "categorySlug": "peinture",
+    "collectionSlug": "maitres-senegalais"
+  },
+  {
+    "sourceFile": "Amadou Kré Mbaye - Sans titre, acryl. sur toile, sc, 38x38cm,.tif",
+    "reference": "MW-0003",
+    "title": "Sans titre",
+    "author": "Amadou Kre Mbaye",
+    "technique": "Acrylique sur toile",
+    "dimensions": "38x38cm",
+    "year": null,
+    "categorySlug": "peinture",
+    "collectionSlug": "maitres-senegalais"
+  },
+  {
+    "sourceFile": "Amadou Kré Mbaye - Sans-titre, Acryl sr toile 61x49cm B.tif",
+    "reference": "MW-0004",
+    "title": "Sans-titre",
+    "author": "Amadou Kre Mbaye",
+    "technique": "Acrylique sur toile",
+    "dimensions": "61x49cm",
+    "year": null,
+    "categorySlug": "peinture",
+    "collectionSlug": "maitres-senegalais"
+  },
+  {
+    "sourceFile": "Amadou Macktar Mbaye dit Tita - Femme du Saltigué, Acryl. mixte sr toile, 84x64cm, 2004 B.tif",
+    "reference": "MW-0005",
+    "title": "Femme du Saltigue",
+    "author": "Amadou Macktar Mbaye dit Tita",
+    "technique": "Acrylique mixte sur toile",
+    "dimensions": "84x64cm",
+    "year": 2004,
+    "categorySlug": "peinture",
+    "collectionSlug": "maitres-senegalais"
+  },
+  {
+    "sourceFile": "Auteur inconnu - Le batteur de diembé, Acryl..tif",
+    "reference": "MW-0006",
+    "title": "Le batteur de diembe",
+    "author": "Auteur inconnu",
+    "technique": "Acrylique",
+    "dimensions": null,
+    "year": null,
+    "categorySlug": "peinture",
+    "collectionSlug": "maitres-senegalais"
+  },
+  {
+    "sourceFile": "El Hadji Sy - Sans-titre, Acryl. sr toile, 130x97cm, 2009 B.tif",
+    "reference": "MW-0007",
+    "title": "Sans-titre",
+    "author": "El Hadji Sy",
+    "technique": "Acrylique sur toile",
+    "dimensions": "130x97cm",
+    "year": 2009,
+    "categorySlug": "peinture",
+    "collectionSlug": "maitres-senegalais"
+  },
+  {
+    "sourceFile": "Elhadji Sy - Talbé tidiane, acryl. sur toile, 100x80cm, 2011.tif",
+    "reference": "MW-0008",
+    "title": "Talbe tidiane",
+    "author": "El Hadji Sy",
+    "technique": "Acrylique sur toile",
+    "dimensions": "100x80cm",
+    "year": 2011,
+    "categorySlug": "peinture",
+    "collectionSlug": "maitres-senegalais"
+  }
+]
