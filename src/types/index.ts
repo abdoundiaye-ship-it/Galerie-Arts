@@ -8,8 +8,15 @@ export type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 export type PurchaseRequestRow = Database["public"]["Tables"]["purchase_requests"]["Row"];
 export type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
 export type RoleRow = Database["public"]["Tables"]["roles"]["Row"];
+export type CartItemRow = Database["public"]["Tables"]["cart_items"]["Row"];
+export type SiteSettingsRow = Database["public"]["Tables"]["site_settings"]["Row"];
 
-export type RoleName = "admin" | "client_autorise" | "visiteur";
+// Only two business roles exist today (admin, visiteur) but the
+// roles/permissions/role_permissions tables are data-driven specifically
+// so more (curator, artist, sales_manager, ...) can be added later
+// without a code change here — this union is just what the UI currently
+// knows how to render, not a hard architectural ceiling.
+export type RoleName = "admin" | "visiteur" | (string & {});
 
 export interface Artwork extends ArtworkRow {
   category: Pick<CategoryRow, "id" | "name" | "slug"> | null;
@@ -34,5 +41,8 @@ export interface CurrentUser {
   email: string | null;
   fullName: string | null;
   roleName: RoleName;
-  status: ProfileRow["status"];
+  isAdmin: boolean;
+  /** The purchase gate: false until an admin activates the account (or
+   *  it's disabled again). Independent of role. */
+  isActive: boolean;
 }

@@ -2,68 +2,20 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin, requireUser } from "@/lib/auth";
-import {
-  purchaseRequestSchema,
-  purchaseRequestReviewSchema,
-} from "@/lib/validations/purchase-request.schema";
+import { purchaseRequestReviewSchema } from "@/lib/validations/purchase-request.schema";
 
 export interface ActionState {
   error?: string;
   success?: string;
 }
 
-export async function submitPurchaseRequestAction(
-  _prev: ActionState,
-  formData: FormData,
-): Promise<ActionState> {
-  const user = await requireUser();
-
-  if (user.status !== "client_autorise" && user.status !== "admin") {
-    return {
-      error:
-        "Votre compte doit d'abord etre valide par un administrateur avant de pouvoir envoyer une demande d'achat.",
-    };
-  }
-
-  const parsed = purchaseRequestSchema.safeParse({
-    artworkId: formData.get("artworkId"),
-    message: formData.get("message"),
-    proposedPrice: formData.get("proposedPrice") || null,
-  });
-
-  if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Formulaire invalide" };
-  }
-
-  const supabase = await createClient();
-  const { error } = await supabase.from("purchase_requests").insert({
-    artwork_id: parsed.data.artworkId,
-    user_id: user.id,
-    message: parsed.data.message || null,
-    proposed_price: parsed.data.proposedPrice ?? null,
-  });
-
-  if (error) {
-    return { error: "Impossible d'envoyer la demande. Reessayez." };
-  }
-
-  const admin = createAdminClient();
-  admin
-    .from("activity_logs")
-    .insert({
-      user_id: user.id,
-      action: "purchase_request.created",
-      entity_type: "artwork",
-      entity_id: parsed.data.artworkId,
-      metadata: {},
-    })
-    .then(undefined, () => undefined);
-
-  revalidatePath("/compte");
-  return { success: "Votre demande a bien ete envoyee. Un administrateur vous recontactera." };
-}
+// Single-artwork submission has been superseded by the cart checkout flow
+// (see lib/actions/cart.ts: addToCartAction + checkoutCartAction), which
+// groups one or more artworks into a single purchase_requests batch via
+// checkout_group_id. This file keeps the parts of the lifecycle that still
+// apply per-request regardless of how it was created: cancelling your own,
+// and admin review.
 
 export async function cancelPurchaseRequestAction(requestId: string) {
   const user = await requireUser();

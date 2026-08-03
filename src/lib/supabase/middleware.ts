@@ -42,18 +42,24 @@ export async function updateSession(request: NextRequest) {
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("status")
+      .select("is_active, roles(name)")
       .eq("id", user.id)
       .single();
 
-    if (profile?.status !== "admin") {
+    const roleRelation = profile?.roles as unknown as { name: string } | { name: string }[] | null;
+    const roleName = Array.isArray(roleRelation) ? roleRelation[0]?.name : roleRelation?.name;
+
+    // Deactivating an admin account must revoke access just as fully as
+    // it revokes a visitor's purchase capability, not just block role
+    // escalation — hence the is_active check here too.
+    if (roleName !== "admin" || !profile?.is_active) {
       const url = request.nextUrl.clone();
       url.pathname = "/";
       return NextResponse.redirect(url);
     }
   }
 
-  if (request.nextUrl.pathname.startsWith("/compte") && !user) {
+  if ((request.nextUrl.pathname.startsWith("/compte") || request.nextUrl.pathname.startsWith("/panier")) && !user) {
     const url = request.nextUrl.clone();
     url.pathname = "/connexion";
     url.searchParams.set("next", request.nextUrl.pathname);

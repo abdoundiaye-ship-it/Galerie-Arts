@@ -46,13 +46,15 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ error: "Image indisponible" }, { status: 404 });
   }
 
-  let profile: { status: string } | null = null;
+  let profile: { is_active: boolean } | null = null;
   if (user) {
-    const { data } = await supabase.from("profiles").select("status").eq("id", user.id).single();
+    const { data } = await supabase.from("profiles").select("is_active").eq("id", user.id).single();
     profile = data;
   }
 
-  const isPrivileged = profile?.status === "admin" || profile?.status === "client_autorise";
+  // Active accounts (admins are always active) get the full-size,
+  // higher-quality watermark; anyone else gets the smaller "preview" tier.
+  const isPrivileged = profile?.is_active === true;
 
   const admin = createAdminClient();
   const { data: fileBlob, error: downloadError } = await admin.storage

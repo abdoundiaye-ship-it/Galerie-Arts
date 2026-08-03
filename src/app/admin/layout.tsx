@@ -9,6 +9,7 @@ const links = [
   { href: "/admin/collections", label: "Collections" },
   { href: "/admin/demandes", label: "Demandes d'achat" },
   { href: "/admin/utilisateurs", label: "Utilisateurs" },
+  { href: "/admin/parametres", label: "Parametres du site" },
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -17,7 +18,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   // caller — re-check here so a page can never render past this point
   // without one, regardless of how the route was reached.
   const user = await getCurrentUser();
-  if (!user || user.status !== "admin") redirect("/");
+  if (!user || !user.isAdmin || !user.isActive) redirect("/");
 
   return (
     <div className="container grid gap-8 py-10 lg:grid-cols-[220px_1fr]">

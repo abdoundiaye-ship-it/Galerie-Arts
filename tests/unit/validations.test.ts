@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { artworkSchema } from "@/lib/validations/artwork.schema";
 import { signUpSchema } from "@/lib/validations/auth.schema";
-import { purchaseRequestSchema } from "@/lib/validations/purchase-request.schema";
+import { checkoutSchema } from "@/lib/validations/purchase-request.schema";
 
 describe("artworkSchema", () => {
   const base = {
@@ -59,22 +59,19 @@ describe("signUpSchema", () => {
   });
 });
 
-describe("purchaseRequestSchema", () => {
-  it("accepts a request with only an artworkId", () => {
-    const result = purchaseRequestSchema.safeParse({ artworkId: "00000000-0000-0000-0000-000000000000" });
+describe("checkoutSchema", () => {
+  it("accepts an empty message", () => {
+    const result = checkoutSchema.safeParse({ message: "" });
     expect(result.success).toBe(true);
   });
 
-  it("rejects a non-uuid artworkId", () => {
-    const result = purchaseRequestSchema.safeParse({ artworkId: "not-a-uuid" });
-    expect(result.success).toBe(false);
+  it("accepts a message", () => {
+    const result = checkoutSchema.safeParse({ message: "Livraison a Dakar si possible" });
+    expect(result.success).toBe(true);
   });
 
-  it("rejects a negative proposed price", () => {
-    const result = purchaseRequestSchema.safeParse({
-      artworkId: "00000000-0000-0000-0000-000000000000",
-      proposedPrice: -5,
-    });
+  it("rejects a message over 2000 characters", () => {
+    const result = checkoutSchema.safeParse({ message: "a".repeat(2001) });
     expect(result.success).toBe(false);
   });
 });

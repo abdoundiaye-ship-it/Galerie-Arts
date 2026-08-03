@@ -1,12 +1,10 @@
 import { z } from "zod";
 
-export const purchaseRequestSchema = z.object({
-  artworkId: z.string().uuid(),
+export const checkoutSchema = z.object({
   message: z.string().trim().max(2000).optional().or(z.literal("")),
-  proposedPrice: z.coerce.number().min(0).optional().nullable(),
 });
 
-export type PurchaseRequestInput = z.infer<typeof purchaseRequestSchema>;
+export type CheckoutInput = z.infer<typeof checkoutSchema>;
 
 export const purchaseRequestReviewSchema = z.object({
   requestId: z.string().uuid(),

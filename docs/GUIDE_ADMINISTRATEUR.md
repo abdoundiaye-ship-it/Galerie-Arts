@@ -1,10 +1,10 @@
 # Guide administrateur
 
-Toutes les pages ci-dessous sont sous `/admin` et necessitent le statut `admin` (voir README pour promouvoir le premier compte).
+Toutes les pages ci-dessous sont sous `/admin` et necessitent le role `admin` **et** un compte actif (voir README pour promouvoir le premier compte). Les deux comptes administrateurs (abdou.ndiaye@gmail.com, makhet.wade@gmail.com) ont des privileges strictement identiques — l'admin n'est pas un compte special, c'est un role parmi ceux geres par la table `roles`.
 
 ## Tableau de bord (`/admin`)
 
-Oeuvres publiees / totales, vues cumulees, comptes en attente, demandes d'achat par statut, top des oeuvres les plus consultees.
+Oeuvres publiees / totales, vues cumulees, comptes inactifs, demandes d'achat par statut, top des oeuvres les plus consultees.
 
 ## Oeuvres (`/admin/oeuvres`)
 
@@ -20,17 +20,32 @@ Oeuvres publiees / totales, vues cumulees, comptes en attente, demandes d'achat 
 
 CRUD simple (`/admin/categories`, `/admin/collections`) : nom + description optionnelle. Le slug est genere automatiquement.
 
-## Demandes d'achat (`/admin/demandes`)
+## Panier et demandes d'achat (`/admin/demandes`)
 
-Chaque demande affiche l'oeuvre, le client, le prix propose (le cas echeant) et le message. Bouton "Traiter" pour accepter/refuser avec une reponse visible par le client.
+Les visiteurs ajoutent des oeuvres a leur panier (`/panier`) puis envoient une seule demande groupee — chaque oeuvre du panier devient une ligne `purchase_requests`, toutes partageant un `checkout_group_id`. La page admin regroupe ces lignes par commande : un visiteur, N oeuvres, un message. Bouton "Traiter" **par oeuvre** pour accepter/refuser individuellement, avec une reponse visible par le client (une commande peut donc etre partiellement acceptee).
+
+Il ne s'agit pas encore d'un vrai paiement en ligne : une demande acceptee doit etre finalisee manuellement (contact direct avec le client) — voir `docs/ROADMAP.md` pour l'integration paiement prevue.
 
 ## Utilisateurs (`/admin/utilisateurs`)
 
-- **Compte en attente de validation** : boutons "Valider" (devient client autorise, peut envoyer des demandes d'achat) ou "Rejeter".
-- **Client autorise** : peut etre promu administrateur.
-- **Administrateur** : peut se voir retirer les droits admin (repasse client autorise).
+Modele de roles simplifie a deux niveaux :
 
-Ces actions modifient `profiles.status`/`profiles.role_id` — un declencheur SQL (`profiles_prevent_self_role_escalation`) empeche tout utilisateur non-admin de s'auto-promouvoir, meme via un appel direct a l'API.
+- **Role** (`roles.name`) : `admin` ou `visiteur`. Extensible plus tard (Curateur, Artiste, Responsable des ventes...) sans migration lourde, grace aux tables `roles`/`permissions`/`role_permissions`.
+- **Statut du compte** (`profiles.is_active`, booleen) : orthogonal au role. C'est le controle d'acces aux achats — un nouveau compte s'inscrit **inactif** (peut naviguer, pas acheter) jusqu'a ce qu'un admin l'active. Desactiver un compte (y compris un compte admin) revoque immediatement l'acces, sans le supprimer.
+
+Actions disponibles par ligne utilisateur :
+
+- **Activer / Desactiver** : bascule `is_active`. Un visiteur desactive garde son panier et ses favoris mais ne peut plus envoyer de demande d'achat tant qu'il n'est pas reactive.
+- **Promouvoir admin / Retirer droits admin** : bascule `role_id`. Un admin ne peut ni se retirer ses propres droits, ni se desactiver lui-meme, ni se supprimer lui-meme (garde-fou pour eviter de se verrouiller hors du systeme).
+- **Reinitialiser mot de passe** : genere un nouveau mot de passe temporaire, affiche une seule fois a l'ecran (a communiquer a l'utilisateur). N'envoie pas d'email — evite la limite de debit du service d'email par defaut de Supabase.
+- **Supprimer** : suppression definitive du compte (auth + profil + favoris/demandes/panier associes, en cascade).
+- **Creer un utilisateur** (bouton en haut de page) : nom, email, role. Le compte est cree **actif** immediatement (confirme, sans email de confirmation) avec un mot de passe temporaire affiche une seule fois — un admin qui cree un compte se porte garant, pas besoin de re-validation.
+
+Ces actions modifient `profiles.role_id`/`profiles.is_active` via le client authentifie de l'admin (pas le client service-role) : un declencheur SQL (`profiles_prevent_self_role_escalation`) empeche tout utilisateur non-admin de modifier son propre role ou statut, meme via un appel direct a l'API — la meme protection est appliquee cote base de donnees, pas seulement dans l'interface.
+
+## Parametres du site (`/admin/parametres`)
+
+Nom du site, accroche, email de contact public — utilises dans le pied de page et les metadonnees SEO de toutes les pages.
 
 ## Statistiques
 

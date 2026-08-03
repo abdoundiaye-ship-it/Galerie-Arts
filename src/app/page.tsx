@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button";
 import { ArtworkGrid } from "@/components/gallery/artwork-grid";
 import { FadeIn } from "@/components/motion/fade-in";
 import { getFeaturedArtworks } from "@/lib/data/artworks";
-import { SITE_TAGLINE } from "@/lib/constants";
+import { getSiteSettings } from "@/lib/data/site-settings";
 
 export default async function HomePage() {
-  const featured = await getFeaturedArtworks(8);
+  const [featured, settings] = await Promise.all([getFeaturedArtworks(8), getSiteSettings()]);
 
   return (
     <div>
@@ -20,7 +20,7 @@ export default async function HomePage() {
             <h1 className="max-w-3xl font-serif text-4xl font-semibold leading-tight sm:text-6xl">
               Makhete Wade
             </h1>
-            <p className="max-w-xl text-lg text-muted-foreground">{SITE_TAGLINE}</p>
+            <p className="max-w-xl text-lg text-muted-foreground">{settings.tagline}</p>
           </FadeIn>
           <FadeIn delay={0.15} className="flex flex-wrap justify-center gap-4">
             <Button asChild size="lg" variant="gold">

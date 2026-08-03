@@ -1,12 +1,15 @@
 import Image from "next/image";
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
+import { getCartCount } from "@/lib/data/cart";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { UserMenu } from "@/components/layout/user-menu";
+import { CartLink } from "@/components/layout/cart-link";
 
 export async function Header() {
   const user = await getCurrentUser();
+  const cartCount = user ? await getCartCount(user.id) : 0;
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -36,6 +39,7 @@ export async function Header() {
 
         <div className="flex items-center gap-2">
           <ThemeToggle />
+          {user && <CartLink count={cartCount} />}
           <UserMenu user={user} />
         </div>
       </div>

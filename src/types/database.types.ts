@@ -212,6 +212,39 @@ export type Database = {
           },
         ]
       }
+      cart_items: {
+        Row: {
+          added_at: string
+          artwork_id: string
+          user_id: string
+        }
+        Insert: {
+          added_at?: string
+          artwork_id: string
+          user_id: string
+        }
+        Update: {
+          added_at?: string
+          artwork_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cart_items_artwork_id_fkey"
+            columns: ["artwork_id"]
+            isOneToOne: false
+            referencedRelation: "artworks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cart_items_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           created_at: string
@@ -380,27 +413,27 @@ export type Database = {
           created_at: string
           full_name: string | null
           id: string
+          is_active: boolean
           phone: string | null
           role_id: number
-          status: Database["public"]["Enums"]["profile_status"]
           updated_at: string
         }
         Insert: {
           created_at?: string
           full_name?: string | null
           id: string
+          is_active?: boolean
           phone?: string | null
           role_id: number
-          status?: Database["public"]["Enums"]["profile_status"]
           updated_at?: string
         }
         Update: {
           created_at?: string
           full_name?: string | null
           id?: string
+          is_active?: boolean
           phone?: string | null
           role_id?: number
-          status?: Database["public"]["Enums"]["profile_status"]
           updated_at?: string
         }
         Relationships: [
@@ -417,6 +450,7 @@ export type Database = {
         Row: {
           admin_response: string | null
           artwork_id: string
+          checkout_group_id: string | null
           created_at: string
           id: string
           message: string | null
@@ -428,6 +462,7 @@ export type Database = {
         Insert: {
           admin_response?: string | null
           artwork_id: string
+          checkout_group_id?: string | null
           created_at?: string
           id?: string
           message?: string | null
@@ -439,6 +474,7 @@ export type Database = {
         Update: {
           admin_response?: string | null
           artwork_id?: string
+          checkout_group_id?: string | null
           created_at?: string
           id?: string
           message?: string | null
@@ -512,6 +548,30 @@ export type Database = {
         }
         Relationships: []
       }
+      site_settings: {
+        Row: {
+          contact_email: string | null
+          id: boolean
+          site_name: string
+          tagline: string | null
+          updated_at: string
+        }
+        Insert: {
+          contact_email?: string | null
+          id?: boolean
+          site_name: string
+          tagline?: string | null
+          updated_at?: string
+        }
+        Update: {
+          contact_email?: string | null
+          id?: boolean
+          site_name?: string
+          tagline?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -522,18 +582,12 @@ export type Database = {
         Returns: undefined
       }
       is_admin: { Args: { uid: string }; Returns: boolean }
-      is_client_autorise: { Args: { uid: string }; Returns: boolean }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
     }
     Enums: {
       artwork_availability: "disponible" | "reserve" | "vendu"
       order_status: "pending" | "paid" | "cancelled" | "refunded"
-      profile_status:
-        | "en_attente_validation"
-        | "client_autorise"
-        | "rejete"
-        | "admin"
       purchase_request_status: "en_attente" | "acceptee" | "refusee" | "annulee"
     }
     CompositeTypes: {
@@ -1117,12 +1171,6 @@ export const Constants = {
     Enums: {
       artwork_availability: ["disponible", "reserve", "vendu"],
       order_status: ["pending", "paid", "cancelled", "refunded"],
-      profile_status: [
-        "en_attente_validation",
-        "client_autorise",
-        "rejete",
-        "admin",
-      ],
       purchase_request_status: ["en_attente", "acceptee", "refusee", "annulee"],
     },
   },
@@ -1136,7 +1184,6 @@ export const Constants = {
 // Convenience aliases used throughout src/ (auto-generated file above this
 // point via `npm run supabase:types` — do not hand-edit above; these
 // aliases are safe to keep, they're just re-exports of the real enums).
-export type ProfileStatus = Database["public"]["Enums"]["profile_status"];
 export type ArtworkAvailability = Database["public"]["Enums"]["artwork_availability"];
 export type PurchaseRequestStatus = Database["public"]["Enums"]["purchase_request_status"];
 export type OrderStatus = Database["public"]["Enums"]["order_status"];

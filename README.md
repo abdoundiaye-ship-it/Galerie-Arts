@@ -46,15 +46,23 @@ npx supabase db reset         # applique migrations + seed.sql automatiquement
 
 ### Premier compte administrateur
 
-1. Créez un compte via `/inscription`.
-2. Promouvez-le en SQL (remplacez l'email) :
+Un declencheur SQL (`profiles_prevent_self_role_escalation`) empeche toute modification de role/statut par un utilisateur qui n'est pas deja admin — y compris via une requete SQL directe. C'est volontaire (voir `docs/SECURITY.md`), mais ca veut dire que **le tout premier admin doit etre cree en desactivant temporairement ce declencheur** :
+
+1. Créez un compte via `/inscription` (ou faites-le creer par le script ci-dessous).
+2. Dans le SQL Editor du dashboard Supabase (ou via `supabase db query --linked`), remplacez l'email et executez, dans l'ordre :
 
 ```sql
+alter table public.profiles disable trigger profiles_prevent_self_role_escalation;
+
 update public.profiles
 set role_id = (select id from public.roles where name = 'admin'),
-    status = 'admin'
+    is_active = true
 where id = (select id from auth.users where email = 'admin@example.com');
+
+alter table public.profiles enable trigger profiles_prevent_self_role_escalation;
 ```
+
+Une fois qu'un premier admin existe, tous les administrateurs suivants se creent normalement depuis `/admin/utilisateurs` (bouton "Creer un utilisateur", avec mot de passe temporaire affiche une seule fois) — plus besoin de toucher au declencheur.
 
 ### Ingestion des 8 oeuvres réelles fournies
 

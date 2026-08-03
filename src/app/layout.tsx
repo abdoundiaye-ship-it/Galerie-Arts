@@ -4,24 +4,29 @@ import { ThemeProvider } from "@/components/layout/theme-provider";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { Toaster } from "@/components/ui/toaster";
-import { SITE_NAME, SITE_TAGLINE, SITE_URL } from "@/lib/constants";
+import { SITE_URL } from "@/lib/constants";
+import { getSiteSettings } from "@/lib/data/site-settings";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
 const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair", display: "swap" });
 
-export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
-  title: { default: SITE_NAME, template: `%s | ${SITE_NAME}` },
-  description: `${SITE_TAGLINE} — galerie d'art virtuelle presentant des oeuvres d'artistes senegalais.`,
-  openGraph: {
-    type: "website",
-    siteName: SITE_NAME,
-    locale: "fr_FR",
-    images: [{ url: "/og-image.jpg", width: 1200, height: 1200 }],
-  },
-  robots: { index: true, follow: true },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSiteSettings();
+
+  return {
+    metadataBase: new URL(SITE_URL),
+    title: { default: settings.site_name, template: `%s | ${settings.site_name}` },
+    description: `${settings.tagline ?? ""} — galerie d'art virtuelle presentant des oeuvres d'artistes senegalais.`,
+    openGraph: {
+      type: "website",
+      siteName: settings.site_name,
+      locale: "fr_FR",
+      images: [{ url: "/og-image.jpg", width: 1200, height: 1200 }],
+    },
+    robots: { index: true, follow: true },
+  };
+}
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

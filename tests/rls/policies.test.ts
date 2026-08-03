@@ -17,11 +17,13 @@ describe.skipIf(!hasLocalSupabaseEnv)("Row Level Security policies", () => {
   const admin = hasLocalSupabaseEnv ? createAdminClient() : null!;
   const suffix = Date.now();
   const adminEmail = `rls-admin-${suffix}@example.com`;
-  const clientEmail = `rls-client-${suffix}@example.com`;
+  const activeVisitorEmail = `rls-active-${suffix}@example.com`;
+  const inactiveVisitorEmail = `rls-inactive-${suffix}@example.com`;
   const password = "Str0ngPassword!";
 
   let adminUserId: string;
-  let clientUserId: string;
+  let activeVisitorId: string;
+  let inactiveVisitorId: string;
   let categoryId: string;
   let publishedArtworkId: string;
   let publishedArtworkReference: string;
@@ -36,22 +38,27 @@ describe.skipIf(!hasLocalSupabaseEnv)("Row Level Security policies", () => {
     if (adminErr) throw adminErr;
     adminUserId = adminUser.user.id;
 
-    const { data: clientUser, error: clientErr } = await admin.auth.admin.createUser({
-      email: clientEmail,
+    const { data: activeUser, error: activeErr } = await admin.auth.admin.createUser({
+      email: activeVisitorEmail,
       password,
       email_confirm: true,
     });
-    if (clientErr) throw clientErr;
-    clientUserId = clientUser.user.id;
+    if (activeErr) throw activeErr;
+    activeVisitorId = activeUser.user.id;
+
+    const { data: inactiveUser, error: inactiveErr } = await admin.auth.admin.createUser({
+      email: inactiveVisitorEmail,
+      password,
+      email_confirm: true,
+    });
+    if (inactiveErr) throw inactiveErr;
+    inactiveVisitorId = inactiveUser.user.id;
 
     const { data: adminRole } = await admin.from("roles").select("id").eq("name", "admin").single();
-    const { data: clientRole } = await admin.from("roles").select("id").eq("name", "client_autorise").single();
 
-    await admin.from("profiles").update({ status: "admin", role_id: adminRole!.id }).eq("id", adminUserId);
-    await admin
-      .from("profiles")
-      .update({ status: "client_autorise", role_id: clientRole!.id })
-      .eq("id", clientUserId);
+    await admin.from("profiles").update({ role_id: adminRole!.id, is_active: true }).eq("id", adminUserId);
+    await admin.from("profiles").update({ is_active: true }).eq("id", activeVisitorId);
+    // inactiveUser stays at handle_new_user's default: visiteur, is_active=false.
 
     const { data: category } = await admin
       .from("categories")
@@ -93,7 +100,8 @@ describe.skipIf(!hasLocalSupabaseEnv)("Row Level Security policies", () => {
     await admin.from("artworks").delete().in("id", [publishedArtworkId, unpublishedArtworkId]);
     await admin.from("categories").delete().eq("id", categoryId);
     await admin.auth.admin.deleteUser(adminUserId);
-    await admin.auth.admin.deleteUser(clientUserId);
+    await admin.auth.admin.deleteUser(activeVisitorId);
+    await admin.auth.admin.deleteUser(inactiveVisitorId);
   });
 
   it("lets an anonymous visitor see only published artworks", async () => {
@@ -116,28 +124,28 @@ describe.skipIf(!hasLocalSupabaseEnv)("Row Level Security policies", () => {
     expect(error).not.toBeNull();
   });
 
-  it("lets a client_autorise user manage their own favorites", async () => {
-    const client = await createSignedInClient(clientEmail, password);
+  it("lets an active visitor manage their own favorites", async () => {
+    const client = await createSignedInClient(activeVisitorEmail, password);
 
     const { error: insertError } = await client
       .from("favorites")
-      .insert({ user_id: clientUserId, artwork_id: publishedArtworkId });
+      .insert({ user_id: activeVisitorId, artwork_id: publishedArtworkId });
     expect(insertError).toBeNull();
 
     const { data: ownFavorites, error: selectError } = await client
       .from("favorites")
       .select("artwork_id")
-      .eq("user_id", clientUserId);
+      .eq("user_id", activeVisitorId);
     expect(selectError).toBeNull();
     expect(ownFavorites).toHaveLength(1);
   });
 
-  it("lets a client_autorise user create a purchase request but not accept it themselves", async () => {
-    const client = await createSignedInClient(clientEmail, password);
+  it("lets an active visitor create a purchase request but not accept it themselves", async () => {
+    const client = await createSignedInClient(activeVisitorEmail, password);
 
     const { data: request, error: insertError } = await client
       .from("purchase_requests")
-      .insert({ artwork_id: publishedArtworkId, user_id: clientUserId, message: "Interesse" })
+      .insert({ artwork_id: publishedArtworkId, user_id: activeVisitorId, message: "Interesse" })
       .select("id")
       .single();
     expect(insertError).toBeNull();
@@ -155,19 +163,37 @@ describe.skipIf(!hasLocalSupabaseEnv)("Row Level Security policies", () => {
     await admin.from("purchase_requests").delete().eq("id", request!.id);
   });
 
-  it("blocks a non-admin from escalating their own role/status", async () => {
-    const client = await createSignedInClient(clientEmail, password);
+  it("blocks an inactive visitor from creating a purchase request", async () => {
+    const client = await createSignedInClient(inactiveVisitorEmail, password);
+
+    const { error } = await client
+      .from("purchase_requests")
+      .insert({ artwork_id: publishedArtworkId, user_id: inactiveVisitorId, message: "Interesse" });
+
+    // Enforced by the purchase_requests_owner_insert policy's is_active
+    // check (migration 00000000000008) — not just the Server Action.
+    expect(error).not.toBeNull();
+  });
+
+  it("blocks a non-admin from escalating their own role or activating themselves", async () => {
+    const client = await createSignedInClient(activeVisitorEmail, password);
     const { data: adminRole } = await admin.from("roles").select("id").eq("name", "admin").single();
 
     const { error } = await client
       .from("profiles")
-      .update({ role_id: adminRole!.id, status: "admin" })
-      .eq("id", clientUserId);
+      .update({ role_id: adminRole!.id, is_active: true })
+      .eq("id", activeVisitorId);
 
     expect(error).not.toBeNull();
 
-    const { data: profileAfter } = await admin.from("profiles").select("status").eq("id", clientUserId).single();
-    expect(profileAfter!.status).toBe("client_autorise");
+    const { data: profileAfter } = await admin
+      .from("profiles")
+      .select("is_active, roles(name)")
+      .eq("id", activeVisitorId)
+      .single();
+    const roleRelation = profileAfter?.roles as unknown as { name: string } | { name: string }[] | null;
+    const roleName = Array.isArray(roleRelation) ? roleRelation[0]?.name : roleRelation?.name;
+    expect(roleName).toBe("visiteur");
   });
 
   it("lets an admin publish a draft artwork and manage purchase requests", async () => {

@@ -4,51 +4,70 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
-  approveUserAction,
-  rejectUserAction,
+  activateUserAction,
+  deactivateUserAction,
   promoteToAdminAction,
-  revokeAdminAction,
+  demoteToVisitorAction,
+  deleteUserAction,
 } from "@/lib/actions/admin-users";
+import { ResetPasswordButton } from "@/components/admin/reset-password-button";
+import { useToast } from "@/hooks/use-toast";
 import type { AdminUserRow } from "@/lib/data/users";
 
-export function UserRowActions({ user }: { user: AdminUserRow }) {
+export function UserRowActions({ user, isSelf }: { user: AdminUserRow; isSelf: boolean }) {
   const [pending, startTransition] = React.useTransition();
   const router = useRouter();
+  const { toast } = useToast();
 
   function run(action: (id: string) => Promise<void>) {
     startTransition(async () => {
-      await action(user.id);
-      router.refresh();
+      try {
+        await action(user.id);
+        router.refresh();
+      } catch (error) {
+        toast({ description: error instanceof Error ? error.message : "Action impossible.", variant: "destructive" });
+      }
     });
+  }
+
+  function handleDelete() {
+    if (!window.confirm(`Supprimer definitivement le compte de ${user.email ?? user.fullName} ?`)) return;
+    run(deleteUserAction);
   }
 
   return (
     <div className="flex flex-wrap justify-end gap-2">
-      {user.status === "en_attente_validation" && (
-        <>
-          <Button size="sm" variant="gold" disabled={pending} onClick={() => run(approveUserAction)}>
-            Valider
-          </Button>
-          <Button size="sm" variant="ghost" className="text-destructive" disabled={pending} onClick={() => run(rejectUserAction)}>
-            Rejeter
-          </Button>
-        </>
+      {user.isActive ? (
+        <Button size="sm" variant="ghost" disabled={pending || isSelf} onClick={() => run(deactivateUserAction)}>
+          Desactiver
+        </Button>
+      ) : (
+        <Button size="sm" variant="gold" disabled={pending} onClick={() => run(activateUserAction)}>
+          Activer
+        </Button>
       )}
-      {user.status === "client_autorise" && (
+
+      {user.roleName === "admin" ? (
+        <Button size="sm" variant="ghost" disabled={pending || isSelf} onClick={() => run(demoteToVisitorAction)}>
+          Retirer droits admin
+        </Button>
+      ) : (
         <Button size="sm" variant="outline" disabled={pending} onClick={() => run(promoteToAdminAction)}>
           Promouvoir admin
         </Button>
       )}
-      {user.status === "admin" && (
-        <Button size="sm" variant="ghost" disabled={pending} onClick={() => run(revokeAdminAction)}>
-          Retirer les droits admin
-        </Button>
-      )}
-      {user.status === "rejete" && (
-        <Button size="sm" variant="outline" disabled={pending} onClick={() => run(approveUserAction)}>
-          Valider quand meme
-        </Button>
-      )}
+
+      <ResetPasswordButton userId={user.id} email={user.email} />
+
+      <Button
+        size="sm"
+        variant="ghost"
+        className="text-destructive"
+        disabled={pending || isSelf}
+        onClick={handleDelete}
+      >
+        Supprimer
+      </Button>
     </div>
   );
 }

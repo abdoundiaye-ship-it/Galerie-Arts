@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatPrice, slugify, generateReference, formatDate } from "@/lib/utils";
+import { formatPrice, slugify, generateReference, formatDate, groupByCheckout } from "@/lib/utils";
 
 describe("formatPrice", () => {
   it("formats XOF amounts with the FCFA suffix and no decimals", () => {
@@ -44,5 +44,29 @@ describe("formatDate", () => {
     const formatted = formatDate("2026-01-15T00:00:00.000Z");
     expect(formatted).toMatch(/janvier/);
     expect(formatted).toMatch(/2026/);
+  });
+});
+
+describe("groupByCheckout", () => {
+  it("groups rows sharing a checkout_group_id into one order", () => {
+    const rows = [
+      { id: "1", checkout_group_id: "group-a" },
+      { id: "2", checkout_group_id: "group-a" },
+      { id: "3", checkout_group_id: "group-b" },
+    ];
+    const groups = groupByCheckout(rows);
+    expect(groups).toHaveLength(2);
+    expect(groups.find((g) => g.key === "group-a")?.items).toHaveLength(2);
+    expect(groups.find((g) => g.key === "group-b")?.items).toHaveLength(1);
+  });
+
+  it("treats rows with no checkout_group_id as their own singleton group", () => {
+    const rows = [
+      { id: "1", checkout_group_id: null },
+      { id: "2", checkout_group_id: null },
+    ];
+    const groups = groupByCheckout(rows);
+    expect(groups).toHaveLength(2);
+    expect(groups.every((g) => g.items.length === 1)).toBe(true);
   });
 });

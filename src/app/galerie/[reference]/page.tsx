@@ -5,7 +5,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { isFavorited } from "@/lib/actions/favorites";
 import { ProtectedImage } from "@/components/gallery/protected-image";
 import { FavoriteButton } from "@/components/gallery/favorite-button";
-import { PurchaseRequestDialog } from "@/components/gallery/purchase-request-dialog";
+import { AddToCartButton } from "@/components/gallery/add-to-cart-button";
 import { Badge } from "@/components/ui/badge";
 import { AVAILABILITY_LABELS, SITE_URL } from "@/lib/constants";
 import { formatPrice } from "@/lib/utils";
@@ -47,7 +47,7 @@ export default async function ArtworkPage({ params }: ArtworkPageProps) {
 
   if (!artwork || !artwork.is_published) {
     const user = await getCurrentUser();
-    if (!artwork || user?.status !== "admin") notFound();
+    if (!artwork || !user?.isAdmin) notFound();
   }
 
   if (!artwork) notFound();
@@ -139,11 +139,10 @@ export default async function ArtworkPage({ params }: ArtworkPageProps) {
 
         <div className="flex flex-wrap gap-3">
           {artwork.availability === "disponible" && (
-            <PurchaseRequestDialog
+            <AddToCartButton
               artworkId={artwork.id}
-              artworkTitle={artwork.title}
               isAuthenticated={Boolean(user)}
-              isAuthorized={user?.status === "client_autorise" || user?.status === "admin"}
+              isActive={user?.isActive ?? false}
               path={path}
             />
           )}

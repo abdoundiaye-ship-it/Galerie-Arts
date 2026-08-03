@@ -47,7 +47,7 @@ export function UserMenu({ user }: { user: CurrentUser | null }) {
         <DropdownMenuItem asChild>
           <Link href="/compte">Mon compte</Link>
         </DropdownMenuItem>
-        {user.status === "admin" && (
+        {user.isAdmin && (
           <DropdownMenuItem asChild>
             <Link href="/admin" className="gap-2">
               <LayoutDashboard className="h-4 w-4" /> Administration

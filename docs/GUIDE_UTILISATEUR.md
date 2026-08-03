@@ -8,22 +8,25 @@
 
 ## Créer un compte
 
-1. `/inscription` : nom, email, mot de passe (8 caracteres min., majuscule + minuscule + chiffre).
+1. `/inscription` : nom, email, mot de passe (8 caracteres min., majuscule + minuscule + chiffre). Ou recevez un compte cree directement par un administrateur (deja actif dans ce cas).
 2. Confirmez votre email via le lien recu.
-3. Votre compte est alors **"visiteur en attente de validation"** : vous pouvez consulter la galerie, mais pas encore envoyer de demande d'achat.
-4. Un administrateur valide votre compte (statut **"client autorise"**) — vous recevrez alors la possibilite d'envoyer des demandes.
+3. Votre compte est alors **inactif** : vous pouvez consulter la galerie, ajouter des favoris et preparer votre panier, mais pas encore envoyer de demande d'achat.
+4. Un administrateur active votre compte — vous recevez alors la possibilite d'acheter.
 
 ## Favoris
 
 Sur toute fiche oeuvre, le bouton "Ajouter aux favoris" enregistre l'oeuvre dans votre espace `/compte` (onglet Favoris). Necessite d'etre connecte.
 
-## Demander l'achat d'une oeuvre
+## Panier et demande d'achat
 
-Sur une fiche oeuvre **disponible**, une fois votre compte valide :
+Sur une fiche oeuvre **disponible** :
 
-1. Cliquez sur "Demander l'achat".
-2. Indiquez, si vous le souhaitez, un prix propose et un message.
-3. Un administrateur traite votre demande (acceptee/refusee) et peut vous repondre — suivez le statut dans `/compte` (onglet Mes demandes).
+1. Cliquez sur "Ajouter au panier" (necessite un compte actif).
+2. Retrouvez votre selection dans `/panier` : retirez une oeuvre si besoin, ajoutez un message optionnel pour l'administrateur.
+3. Cliquez sur "Envoyer la demande d'achat" — une seule demande groupee est envoyee pour tout le panier, qui se vide ensuite.
+4. Un administrateur traite chaque oeuvre de votre commande (acceptee/refusee) et peut vous repondre — suivez le statut dans `/compte` (onglet Mes commandes).
+
+Il ne s'agit pas encore d'un paiement en ligne automatique : une demande acceptee est finalisee directement avec l'administrateur.
 
 ## Mot de passe oublie
 

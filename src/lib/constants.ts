@@ -19,12 +19,15 @@ export const PURCHASE_REQUEST_STATUS_LABELS: Record<string, string> = {
   annulee: "Annulee",
 };
 
-export const PROFILE_STATUS_LABELS: Record<string, string> = {
-  en_attente_validation: "En attente de validation",
-  client_autorise: "Client autorise",
-  rejete: "Rejete",
+export const ROLE_LABELS: Record<string, string> = {
   admin: "Administrateur",
+  visiteur: "Visiteur",
 };
+
+export const ACCOUNT_STATUS_LABELS = {
+  active: "Actif",
+  inactive: "Inactif",
+} as const;
 
 export const SORT_OPTIONS: { value: string; label: string }[] = [
   { value: "recent", label: "Plus recent" },

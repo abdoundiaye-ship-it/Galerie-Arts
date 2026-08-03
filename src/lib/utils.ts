@@ -33,3 +33,26 @@ export function formatDate(value: string | Date): string {
 export function generateReference(index: number, year = new Date().getFullYear()): string {
   return `MW-${year}-${String(index).padStart(3, "0")}`;
 }
+
+export interface CheckoutGroup<T> {
+  key: string;
+  items: T[];
+}
+
+// Cart checkouts insert one purchase_requests row per artwork, sharing a
+// checkout_group_id. This regroups a flat list back into "one order, N
+// items" for display — rows without a group (shouldn't happen going
+// forward, but tolerated for any pre-cart data) each become their own
+// singleton group.
+export function groupByCheckout<T extends { checkout_group_id: string | null; id: string }>(
+  rows: T[],
+): CheckoutGroup<T>[] {
+  const groups = new Map<string, T[]>();
+  for (const row of rows) {
+    const key = row.checkout_group_id ?? row.id;
+    const existing = groups.get(key);
+    if (existing) existing.push(row);
+    else groups.set(key, [row]);
+  }
+  return Array.from(groups.entries()).map(([key, items]) => ({ key, items }));
+}

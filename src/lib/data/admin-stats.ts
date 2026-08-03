@@ -28,7 +28,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     supabase.from("artworks").select("id", { count: "exact", head: true }),
     supabase.from("artworks").select("id", { count: "exact", head: true }).eq("is_published", true),
     supabase.from("artworks").select("view_count"),
-    supabase.from("profiles").select("id", { count: "exact", head: true }).eq("status", "en_attente_validation"),
+    supabase.from("profiles").select("id", { count: "exact", head: true }).eq("is_active", false),
     supabase.from("purchase_requests").select("id", { count: "exact", head: true }).eq("status", "en_attente"),
     supabase.from("purchase_requests").select("id", { count: "exact", head: true }).eq("status", "acceptee"),
     supabase.from("purchase_requests").select("id", { count: "exact", head: true }).eq("status", "refusee"),
