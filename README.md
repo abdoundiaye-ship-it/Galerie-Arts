@@ -6,7 +6,7 @@ Application web de galerie d'art (Next.js 15 App Router + Supabase) : exposition
 
 - **Frontend** : Next.js (App Router), TypeScript, Tailwind CSS, composants "ShadCN" (Radix + CVA, code source dans `src/components/ui`), Framer Motion.
 - **Backend** : Supabase (Auth, Postgres, Storage, Row Level Security).
-- **Hébergement** : Vercel, déploiement continu via GitHub Actions.
+- **Hébergement** : Vercel, connecté nativement au dépôt GitHub (déploiement automatique à chaque push sur `main`, previews sur chaque PR).
 - **Tests** : Vitest (unitaires + RLS), Playwright (e2e smoke).
 
 ## Prérequis
@@ -86,16 +86,16 @@ npm run dev
 | `npm run convert:artworks` | Ingestion des 8 oeuvres réelles |
 | `npm run supabase:types` | Régénère `src/types/database.types.ts` depuis le schéma réel |
 
-## Déploiement (GitHub -> Vercel)
+## Déploiement (intégration Git native Vercel)
 
-1. Poussez ce dépôt sur GitHub.
-2. Créez un projet Vercel lié à ce dépôt (ou récupérez `VERCEL_ORG_ID`/`VERCEL_PROJECT_ID` via `vercel link`).
-3. Dans les paramètres GitHub du dépôt (`Settings > Secrets and variables > Actions`), ajoutez :
-   - `VERCEL_TOKEN`
-   - `VERCEL_ORG_ID`
-   - `VERCEL_PROJECT_ID`
-4. Dans Vercel, configurez les variables d'environnement de production (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_SITE_URL`).
-5. Chaque push sur `main` déclenche `.github/workflows/deploy.yml`.
+1. Sur [vercel.com/new](https://vercel.com/new), importez le dépôt GitHub `abdoundiaye-ship-it/Galerie-Arts`. Vercel détecte automatiquement Next.js — laissez les réglages de build par défaut.
+2. Avant le premier déploiement, ajoutez les variables d'environnement du projet (Vercel > Settings > Environment Variables), pour les environnements **Production** et **Preview** :
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `SUPABASE_SERVICE_ROLE_KEY` (secret — ne jamais préfixer `NEXT_PUBLIC_`)
+   - `NEXT_PUBLIC_SITE_URL` (l'URL Vercel de production, ex. `https://galerie-arts.vercel.app`, ou votre domaine personnalisé)
+3. Chaque push sur `main` déclenche un déploiement de production ; chaque pull request obtient une URL de preview isolée automatiquement — aucun workflow GitHub Actions supplémentaire n'est nécessaire pour ça (`.github/workflows/ci.yml` continue de faire tourner lint/typecheck/test/build sur chaque PR en parallèle).
+4. Une fois `NEXT_PUBLIC_SITE_URL` connu, mettez aussi à jour l'URL de redirection dans Supabase (Authentication > URL Configuration > Site URL / Redirect URLs) pour que les liens de confirmation email et de réinitialisation de mot de passe pointent vers le bon domaine.
 
 ## Documentation complémentaire
 
