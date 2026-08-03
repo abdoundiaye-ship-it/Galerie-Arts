@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { searchArtworks, getDistinctYears } from "@/lib/data/artworks";
 import { getCategories } from "@/lib/data/categories";
-import { ArtworkGrid } from "@/components/gallery/artwork-grid";
+import { GalleryView } from "@/components/gallery/gallery-view";
 import { GalleryFilters } from "@/components/gallery/gallery-filters";
 import { Pagination } from "@/components/gallery/pagination";
 import type { ArtworkSearchParams } from "@/types";
@@ -32,7 +32,7 @@ export default async function GaleriePage({ searchParams }: GaleriePageProps) {
 
       <GalleryFilters categories={categories} years={years} />
 
-      <ArtworkGrid artworks={artworks} />
+      <GalleryView artworks={artworks} />
 
       <Pagination
         page={page}

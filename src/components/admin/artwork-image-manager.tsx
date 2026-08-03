@@ -45,14 +45,14 @@ export function ArtworkImageManager({ artworkId, images }: { artworkId: string; 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {images.map((image) => (
           <div key={image.id} className="space-y-2">
-            <div className="relative aspect-square overflow-hidden rounded-md border">
+            <div
+              className={`relative aspect-square overflow-hidden rounded-md border ${
+                image.is_primary ? "ring-2 ring-gold-500 ring-offset-2 ring-offset-background" : ""
+              }`}
+            >
               <Image src={getPublicThumbnailUrl(image.thumbnail_path)} alt="" fill className="object-cover" />
-              {image.is_primary && (
-                <span className="absolute left-1 top-1 rounded bg-gold-500 px-1.5 py-0.5 text-xs font-semibold text-black">
-                  Principale
-                </span>
-              )}
             </div>
+            {image.is_primary && <p className="text-center text-xs text-muted-foreground">Image principale</p>}
             <Button
               variant="ghost"
               size="sm"
