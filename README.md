@@ -88,14 +88,22 @@ npm run dev
 
 ## Déploiement (intégration Git native Vercel)
 
+**Statut actuel : déployé sur https://galerie-arts.vercel.app** (domaine `vercel.app` temporaire — un domaine personnalisé sera branché plus tard ; voir la mise à jour à faire ci-dessous le jour venu).
+
 1. Sur [vercel.com/new](https://vercel.com/new), importez le dépôt GitHub `abdoundiaye-ship-it/Galerie-Arts`. Vercel détecte automatiquement Next.js — laissez les réglages de build par défaut.
 2. Avant le premier déploiement, ajoutez les variables d'environnement du projet (Vercel > Settings > Environment Variables), pour les environnements **Production** et **Preview** :
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `SUPABASE_SERVICE_ROLE_KEY` (secret — ne jamais préfixer `NEXT_PUBLIC_`)
-   - `NEXT_PUBLIC_SITE_URL` (l'URL Vercel de production, ex. `https://galerie-arts.vercel.app`, ou votre domaine personnalisé)
+   - `NEXT_PUBLIC_SITE_URL` (l'URL Vercel de production, ou votre domaine personnalisé une fois branché)
 3. Chaque push sur `main` déclenche un déploiement de production ; chaque pull request obtient une URL de preview isolée automatiquement — aucun workflow GitHub Actions supplémentaire n'est nécessaire pour ça (`.github/workflows/ci.yml` continue de faire tourner lint/typecheck/test/build sur chaque PR en parallèle).
-4. Une fois `NEXT_PUBLIC_SITE_URL` connu, mettez aussi à jour l'URL de redirection dans Supabase (Authentication > URL Configuration > Site URL / Redirect URLs) pour que les liens de confirmation email et de réinitialisation de mot de passe pointent vers le bon domaine.
+4. `supabase/config.toml` (`[auth] site_url` / `additional_redirect_urls`) est déjà synchronisé avec `https://galerie-arts.vercel.app` sur le projet Supabase live (via `supabase config push`), pour que les liens de confirmation email et de réinitialisation de mot de passe pointent au bon endroit.
+
+### Quand le domaine personnalisé sera branché
+
+1. Ajoutez le domaine dans Vercel (Project > Settings > Domains).
+2. Mettez à jour `NEXT_PUBLIC_SITE_URL` dans les variables d'environnement Vercel.
+3. Mettez à jour `site_url`/`additional_redirect_urls` dans `supabase/config.toml`, puis `supabase config push` (ou faites-le faire).
 
 ## Documentation complémentaire
 

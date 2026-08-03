@@ -17,12 +17,38 @@ port = 54323
 
 [auth]
 enabled = true
-site_url = "http://localhost:3000"
-additional_redirect_urls = ["http://localhost:3000"]
+site_url = "https://galerie-arts.vercel.app"
+# Keep localhost so `npm run dev` auth flows (email confirm, password
+# reset) still work while iterating locally; update again once a custom
+# domain replaces the vercel.app one (per project decision to migrate later).
+additional_redirect_urls = ["https://galerie-arts.vercel.app", "http://localhost:3000"]
 jwt_expiry = 3600
 enable_signup = true
+
+# Pinned explicitly: any [auth.*] subsection left unspecified gets
+# overwritten with the CLI's own defaults on `config push`, not left
+# alone. The first push (before this block existed) silently changed
+# otp_length 8->6, email resend max_frequency 1m0s->1s, and disabled TOTP
+# MFA enrollment on the live project — restored here to what the project
+# actually had.
+#
+# enable_confirmations belongs here (auth.email), NOT top-level [auth] —
+# it was mistakenly set there originally, which is a silent no-op: the
+# live project has had email confirmation OFF since project creation
+# despite that stray line. Fixed by setting it in the right place.
+[auth.email]
 enable_confirmations = true
+otp_length = 8
+max_frequency = "1m0s"
+
+[auth.mfa.totp]
+enroll_enabled = true
+verify_enabled = true
 
 [storage]
 enabled = true
-file_size_limit = "100MiB"
+# The live project is on the free tier, whose global upload limit is
+# 50MiB regardless of this value or any per-bucket limit set in the
+# storage.buckets migration — keep it in sync to avoid `config push`
+# repeatedly trying (and failing, paid-tier-gated) to raise it.
+file_size_limit = "50MiB"
