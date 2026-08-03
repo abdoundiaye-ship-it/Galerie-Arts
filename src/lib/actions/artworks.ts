@@ -116,6 +116,9 @@ export async function deleteArtworkAction(artworkId: string) {
 
 const DISPLAY_MAX_DIMENSION = 1600;
 const THUMBNAIL_MAX_DIMENSION = 480;
+// Capped rather than byte-for-byte, same reasoning as scripts/convert-artworks.mjs:
+// raw scans can exceed Supabase Storage's project-wide upload size limit.
+const ARCHIVAL_MAX_DIMENSION = 4000;
 
 export async function uploadArtworkImageAction(artworkId: string, formData: FormData): Promise<ActionState> {
   await requireAdmin();
@@ -129,7 +132,12 @@ export async function uploadArtworkImageAction(artworkId: string, formData: Form
   const sourceBuffer = Buffer.from(await file.arrayBuffer());
   const baseName = `${artworkId}-${Date.now()}`;
 
-  const [displayBuffer, thumbnailBuffer] = await Promise.all([
+  const [archivalBuffer, displayBuffer, thumbnailBuffer] = await Promise.all([
+    sharp(sourceBuffer)
+      .rotate()
+      .resize({ width: ARCHIVAL_MAX_DIMENSION, height: ARCHIVAL_MAX_DIMENSION, fit: "inside", withoutEnlargement: true })
+      .jpeg({ quality: 92, mozjpeg: true })
+      .toBuffer(),
     sharp(sourceBuffer)
       .rotate()
       .resize({ width: DISPLAY_MAX_DIMENSION, height: DISPLAY_MAX_DIMENSION, fit: "inside", withoutEnlargement: true })
@@ -143,13 +151,13 @@ export async function uploadArtworkImageAction(artworkId: string, formData: Form
   ]);
 
   const metadata = await sharp(sourceBuffer).metadata();
-  const originalPath = `${baseName}/original-${file.name}`;
+  const originalPath = `${baseName}/original.jpg`;
   const displayPath = `${baseName}/display.webp`;
   const thumbnailPath = `${baseName}/thumbnail.webp`;
 
   const [originalUpload, displayUpload, thumbnailUpload] = await Promise.all([
-    supabase.storage.from("artworks-original").upload(originalPath, sourceBuffer, {
-      contentType: file.type || "application/octet-stream",
+    supabase.storage.from("artworks-original").upload(originalPath, archivalBuffer, {
+      contentType: "image/jpeg",
       upsert: false,
     }),
     supabase.storage.from("artworks-display").upload(displayPath, displayBuffer, {

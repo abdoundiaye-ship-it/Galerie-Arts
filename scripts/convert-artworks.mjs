@@ -8,7 +8,7 @@
 // Usage: fill .env.local (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY), then:
 //   npm run convert:artworks
 
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
@@ -37,6 +37,27 @@ const SOURCE_JSON = path.join(__dirname, "artworks.source.json");
 
 const DISPLAY_MAX_DIMENSION = 1600;
 const THUMBNAIL_MAX_DIMENSION = 480;
+// Archival "original" copy: capped rather than byte-for-byte, because a
+// raw scanner TIFF (these run 10-60MB+) can exceed Supabase Storage's
+// project-wide upload size limit. 4000px + high-quality JPEG keeps it
+// visually near-lossless for print/reference while staying well under
+// any reasonable limit.
+const ARCHIVAL_MAX_DIMENSION = 4000;
+
+// Source filenames came off a Mac (NFD-normalized: e.g. "e" + combining
+// acute, U+0065 U+0301) while artworks.source.json was typed as NFC
+// ("é", U+00E9). Both normalize to the same string, but Node's fs calls
+// need an exact byte match — so resolve by comparing normalized forms
+// against the real directory listing instead of trusting the literal path.
+async function resolveSourceFilePath(sourceFile) {
+  const entries = await readdir(ORIGINALS_DIR);
+  const target = sourceFile.normalize("NFC");
+  const match = entries.find((entry) => entry.normalize("NFC") === target);
+  if (!match) {
+    throw new Error(`fichier introuvable dans ${ORIGINALS_DIR} pour "${sourceFile}"`);
+  }
+  return path.join(ORIGINALS_DIR, match);
+}
 
 async function resolveTaxonomyId(table, slug) {
   if (!slug) return null;
@@ -47,13 +68,18 @@ async function resolveTaxonomyId(table, slug) {
 }
 
 async function processEntry(entry) {
-  const sourcePath = path.join(ORIGINALS_DIR, entry.sourceFile);
+  const sourcePath = await resolveSourceFilePath(entry.sourceFile);
   console.log(`\n-> ${entry.reference} : ${entry.sourceFile}`);
 
   const sourceBuffer = await readFile(sourcePath);
   const metadata = await sharp(sourceBuffer).metadata();
 
-  const [displayBuffer, thumbnailBuffer] = await Promise.all([
+  const [archivalBuffer, displayBuffer, thumbnailBuffer] = await Promise.all([
+    sharp(sourceBuffer)
+      .rotate()
+      .resize({ width: ARCHIVAL_MAX_DIMENSION, height: ARCHIVAL_MAX_DIMENSION, fit: "inside", withoutEnlargement: true })
+      .jpeg({ quality: 92, mozjpeg: true })
+      .toBuffer(),
     sharp(sourceBuffer)
       .rotate()
       .resize({ width: DISPLAY_MAX_DIMENSION, height: DISPLAY_MAX_DIMENSION, fit: "inside", withoutEnlargement: true })
@@ -66,13 +92,13 @@ async function processEntry(entry) {
       .toBuffer(),
   ]);
 
-  const originalPath = `${entry.reference}/original.tif`;
+  const originalPath = `${entry.reference}/original.jpg`;
   const displayPath = `${entry.reference}/display.webp`;
   const thumbnailPath = `${entry.reference}/thumbnail.webp`;
 
   const uploads = await Promise.all([
-    supabase.storage.from("artworks-original").upload(originalPath, sourceBuffer, {
-      contentType: "image/tiff",
+    supabase.storage.from("artworks-original").upload(originalPath, archivalBuffer, {
+      contentType: "image/jpeg",
       upsert: true,
     }),
     supabase.storage.from("artworks-display").upload(displayPath, displayBuffer, {
