@@ -30,5 +30,7 @@ npm-debug.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# raw high-resolution source scans — never publish originals in the public repo
+# raw high-resolution source scans and source archives — never publish
+# originals in the public repo (also frequently over GitHub's 100MB limit)
 /assets-source/originals/*.tif
+/assets-source/originals/*.zip
