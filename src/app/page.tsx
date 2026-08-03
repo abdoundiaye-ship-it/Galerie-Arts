@@ -58,16 +58,20 @@ export default async function HomePage() {
               Makhete Wade presente une selection d&apos;oeuvres d&apos;artistes senegalais,
               accessible en ligne dans un espace pense comme une galerie de musee. Chaque
               piece est documentee (auteur, technique, dimensions, annee) et peut faire
-              l&apos;objet d&apos;une demande d&apos;acquisition apres validation de votre compte.
+              l&apos;objet d&apos;une demande d&apos;acquisition une fois votre compte active
+              par un administrateur.
             </p>
           </FadeIn>
           <FadeIn delay={0.15} className="rounded-lg border border-border/60 bg-card p-6">
             <h3 className="font-serif text-lg font-semibold">Comment acquerir une oeuvre</h3>
             <ol className="mt-4 list-decimal space-y-2 pl-5 text-sm text-muted-foreground">
-              <li>Creez un compte et attendez la validation par un administrateur.</li>
-              <li>Parcourez le catalogue et ouvrez la fiche d&apos;une oeuvre disponible.</li>
-              <li>Envoyez une demande d&apos;achat, avec un prix propose si vous le souhaitez.</li>
-              <li>Un administrateur vous recontacte pour finaliser la transaction.</li>
+              <li>Creez un compte (ou recevez-en un d&apos;un administrateur).</li>
+              <li>Parcourez la galerie et ajoutez les oeuvres disponibles qui vous interessent a votre panier.</li>
+              <li>
+                Une fois votre compte active par un administrateur, envoyez votre demande
+                d&apos;achat directement depuis votre panier (un message est possible).
+              </li>
+              <li>Un administrateur traite votre demande et vous recontacte pour finaliser l&apos;acquisition.</li>
             </ol>
           </FadeIn>
         </div>
